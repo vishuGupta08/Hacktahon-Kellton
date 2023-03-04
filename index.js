@@ -159,6 +159,7 @@ app.get('/projects', (req,res)=> {
        if(!decode){
         return res.json({success: false, message:"Token Verification Failed"})
        }
+     
     const projects =   Helper.getProjects(decode.id)
     return res.json({
         success: true,
@@ -195,7 +196,9 @@ app.post('/projects', (req, res) => {
     const newProject = { name: name, id:id, userid: decode.id};
     projects.push(newProject);
     Helper.saveProjects(projects);
-  
+  if(!fs.existsSync(__dirname + '/Projects')){
+    fs.mkdirSync('./Projects');
+  }
     
     fs.mkdirSync(dir);
     return res.json({ success: true, message: 'Project created successfully' });
