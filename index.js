@@ -139,11 +139,11 @@ app.post('/login', (req, res) => {
   //create project
   
 app.get('/users', (req,res)=> {
-  const projects =   Helper.getProjects()
+  const users =   Helper.getUsers()
     return res.json({
         success: true,
-        message:"Projects fetched successfully",
-        data: projects
+        message:"Users fetched successfully",
+        data: users
     })
 })
 app.get('/projects', (req,res)=> {
