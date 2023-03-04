@@ -36,7 +36,7 @@ if(Array.isArray(fileNames) &&  fileNames.length){
         }
         let functionObj = require('./'+ path)
         console.log(functionObj)
-        return
+        
         if(!Object.keys(functionObj).length){
             return res.status(400).json({
                 success: false,
@@ -138,6 +138,14 @@ app.post('/login', (req, res) => {
 
   //create project
   
+app.get('/users', (req,res)=> {
+  const projects =   Helper.getProjects()
+    return res.json({
+        success: true,
+        message:"Projects fetched successfully",
+        data: projects
+    })
+})
 app.get('/projects', (req,res)=> {
     const token = req.body.token;
 
