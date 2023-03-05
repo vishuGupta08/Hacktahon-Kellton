@@ -14,6 +14,7 @@ module.exports.saveProjects = (project) => {
       return JSON.parse(projects).find(project=> project.id === id )
     }
     if(userId){
+      console.log(userId)
       return JSON.parse(projects).find(project=> project.userid === userId )
     }
     return JSON.parse(projects);

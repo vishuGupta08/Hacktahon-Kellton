@@ -159,7 +159,7 @@ app.get('/projects', (req,res)=> {
        if(!decode){
         return res.json({success: false, message:"Token Verification Failed"})
        }
-     
+     console.log(decode)
     const projects =   Helper.getProjects('',decode.id)
     return res.json({
         success: true,
