@@ -3,6 +3,7 @@ require('dotenv').config()
 const {Configuration , OpenAIApi} = require('openai');
 const fs = require('fs')
 const util = require('util')
+const cors = require("cors");
 
 
 const jwt = require('jsonwebtoken');
@@ -16,6 +17,7 @@ const openAI = new OpenAIApi(configuration);
 const homedir = require('os').homedir();
 const bodyParser = require('body-parser')
 const app = express();
+app.use(cors());
 const multer = require('multer');
 const upload = multer();
 const path = require('path');
@@ -34,7 +36,7 @@ if(Array.isArray(fileNames) &&  fileNames.length){
             console.log(`File Not Available - ${path}`)
             continue;
         }
-        let functionObj = require('./'+ path)
+        let functionObj = require(__dirname + `/Projects/${project.name}`+ '/'+ path)
         console.log(functionObj)
         
         if(!Object.keys(functionObj).length){
@@ -254,11 +256,15 @@ const projectId = req.body.projectId
     // Wait for all promises to resolve
     Promise.all(uploadPromises)
       .then((filenames) => {
-        res.send('Files uploaded successfully: ' + filenames.join(', '));
+        res.json({
+          success: true,
+          message: 'Files uploaded successfully: ' + filenames.join(', ')});
       })
       .catch((err) => {
         console.error(err);
-        res.status(500).send('Error uploading files');
+        res.status(500).json({
+          success : false,
+          message: 'Error uploading files'});
       });
   });
   

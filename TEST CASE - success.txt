@@ -1,0 +1,5 @@
+
+1. (200, 'Success', {name: 'John', age: 25}) => {status: true, error: false, code: 200, message: 'Success', data: {name: 'John', age: 25}}
+2. (201, 'Created', {name: 'Jane', age: 22}) => {status: true, error: false, code: 201, message: 'Created', data: {name: 'Jane', age: 22}}
+3. (400, 'Bad Request', null) => {status: true, error: false, code: 400, message: 'Bad Request', data: null}
+4. (403, 'Forbidden', {name: 'Luke', age: 30}) => {status: true, error: false, code: 403, message: 'Forbidden', data: {name: 'Luke', age: 30}}
