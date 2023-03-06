@@ -2,6 +2,7 @@
 const fs = require('fs')
 //save a new project
 const jwt = require('jsonwebtoken');
+const path = require('path')
 module.exports.saveProjects = (project) => {
     const json = JSON.stringify(project);
     fs.writeFileSync('projectList.json', json);
@@ -14,8 +15,32 @@ module.exports.saveProjects = (project) => {
       return JSON.parse(projects).find(project=> project.id === id )
     }
     if(userId){
+
       console.log(userId)
-      return JSON.parse(projects).find(project=> project.userid === userId )
+      let allProjects = [];
+      let result =[]
+      allProjects.push(JSON.parse(projects).find(project=> project.userid === userId ))
+      for(let project of allProjects){
+       
+        let projectName = project.name;
+     let folderPath =   path.join(__dirname, '..', `/Projects/${projectName}`)
+     
+        fs.readdir(folderPath, (err, files) => {
+          if (err) {
+            console.error(err);
+            
+          } else {
+            Object.assign(project, {files: files})
+            result.push(project)
+            console.log(result)
+            // res.send(files);
+          }
+        });   
+
+      }
+     
+      
+          return result
     }
     return JSON.parse(projects);
   }

@@ -24,6 +24,8 @@ const path = require('path');
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+
 app.post('/generate-testcases', async(req,res)=> {
     try{
         let {projectId, fileNames} = req.body;
@@ -60,7 +62,7 @@ if(Array.isArray(fileNames) &&  fileNames.length){
                 presence_penalty:0.0
             }) 
             let answer = response.data.choices[0].text
-var write = fs.writeFile(`TEST CASE - ${functionName}.txt`, answer, (err) => {
+var write = fs.writeFile(__dirname + `/Projects/${project.name}/${functionName}.txt`, answer, (err) => {
 
     if (err) throw err 
     
@@ -148,6 +150,7 @@ app.get('/users', (req,res)=> {
         data: users
     })
 })
+//to get all projects of a user
 app.get('/projects', (req,res)=> {
     const token = req.body.token;
 
@@ -161,8 +164,9 @@ app.get('/projects', (req,res)=> {
        if(!decode){
         return res.json({success: false, message:"Token Verification Failed"})
        }
-     console.log(decode)
+    //  console.log(decode)
     const projects =   Helper.getProjects('',decode.id)
+    console.log(projects)
     return res.json({
         success: true,
         message:"Projects fetched successfully",
@@ -268,7 +272,41 @@ const projectId = req.body.projectId
       });
   });
   
-
+  app.get('/files', (req, res) => {
+    const files = [
+      { name: 'success.txt', path: '/home/vishu.gupta/Desktop/Hackathon/Projects/My First Project/success.txt' },
+      { name: 'error.txt', path: '/home/vishu.gupta/Desktop/Hackathon/Projects/My First Project/error.txt' },
+ 
+    ];
+  
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Transfer-Encoding', 'chunked');
+  
+    files.forEach(file => {
+      const filePath = file.path;
+      
+      const fileStream = fs.createReadStream(filePath);
+  
+      fileStream.on('open', () => {
+        res.write(`--${file.name}\r\n`);
+        res.write(`Content-Disposition: attachment; filename="${file.name}"\r\n`);
+        res.write(`Content-Type: text/plain\r\n`);
+        res.write('\r\n');
+      });
+  
+      fileStream.on('data', chunk => {
+        
+        res.write(chunk);
+      });
+  
+      fileStream.on('end', () => {
+        res.write('\r\n');
+      });
+    });
+  
+    res.write(`--\r\n`);
+    res.end();
+  });
   
 const port = process.env.PORT || 5000;
 
