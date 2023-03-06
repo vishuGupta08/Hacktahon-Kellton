@@ -152,7 +152,7 @@ app.get('/users', (req,res)=> {
 })
 //to get all projects of a user
 app.get('/projects', (req,res)=> {
-    const token = req.body.token;
+    const token = req.query.token;
 
        // If the token is present
        if(!token) return res.json({success: false, message:"Token Missing"})
