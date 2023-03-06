@@ -165,7 +165,7 @@ app.get('/users', (req,res)=> {
   
 })
 //to get all projects of a user
-app.get('/projects', (req,res)=> {
+app.get('/projects', async(req,res)=> {
   try{
     const token = req.query.token;
 
@@ -180,8 +180,8 @@ app.get('/projects', (req,res)=> {
      return res.json({success: false, message:"Token Verification Failed"})
     }
  //  console.log(decode)
- const projects =   Helper.getProjects('',decode.id)
- console.log(projects)
+ let projects =   await Helper.getProjects('',decode.id)
+//  console.log(projects)
  return res.json({
      success: true,
      message:"Projects fetched successfully",
@@ -189,7 +189,7 @@ app.get('/projects', (req,res)=> {
  })
   } catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})}
 })
-app.post('/projects', (req, res) => {
+app.post('/projects', async(req, res) => {
   try{
     // Get token value to the json body
     const token = req.body.token;
@@ -211,13 +211,15 @@ app.post('/projects', (req, res) => {
  let id =  uuidv4() 
  const dir = `./Projects/${name}`;
 
- const projects = Helper.getProjects();
+ const projects = await Helper.getProjects();
+ console.log(projects)
  if (projects.find(project => project.name === name)) {
    return res.status(409).json({ message: 'Project already exists', projectId:project.id });
  }
  const newProject = { name: name, id:id, userid: decode.id};
+ 
  projects.push(newProject);
-//  console.log(projects)
+//  console.log(projects, newProject)
  Helper.saveProjects(projects);
 if(!fs.existsSync(__dirname + '/Projects')){
  fs.mkdirSync('./Projects');

@@ -9,40 +9,44 @@ module.exports.saveProjects = (project) => {
   }
 
   //get project list
-  module.exports.getProjects = (id = '', userId ='') =>  {
-    const projects = fs.readFileSync('projectList.json');
+  module.exports.getProjects = async(id = '', userId ='') =>  {
+  try{
+    const projects =  fs.readFileSync('projectList.json');
+    // console.log(JSON.parse(projects))
     if(id){
       return JSON.parse(projects).find(project=> project.id === id )
     }
     if(userId){
-return JSON.parse(projects).find(project=> project.userid === userId )
-      console.log(userId)
+// return JSON.parse(projects).find(project=> project.userid === userId )
+      // console.log(userId)
       let allProjects = [];
+      
+      allProjects = JSON.parse(projects).filter(project=> project.userid === userId )
       let result =[]
-      allProjects.push(JSON.parse(projects).find(project=> project.userid === userId ))
+      console.log(allProjects)
       for(let project of allProjects){
        
         let projectName = project.name;
+        // console.log(projectName)
      let folderPath =   path.join(__dirname, '..', `/Projects/${projectName}`)
      
-        fs.readdir(folderPath, (err, files) => {
-          if (err) {
-            console.error(err);
-            
-          } else {
-            Object.assign(project, {files: files})
-            result.push(project)
-            console.log(result)
-            // res.send(files);
-          }
-        });   
+     let files = await fs.promises.readdir(folderPath);
+    Object.assign(project, { files: files });
+    result.push(project);   
 
       }
      
-      
-          return result
+      // console.log(result)
+          return result;
     }
+    // console.log(JSON.parse(projects))
     return JSON.parse(projects);
+  }catch(error){
+    return res.json({
+      message: error.response ? error.response.data : 'Server Issue'
+    })
+  }
+    
   }
 
 
