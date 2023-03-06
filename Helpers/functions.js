@@ -31,7 +31,8 @@ module.exports.saveProjects = (project) => {
      let folderPath =   path.join(__dirname, '..', `/Projects/${projectName}`)
      
      let files = await fs.promises.readdir(folderPath);
-    Object.assign(project, { files: files });
+     let fileData = segregateFilenames(files)
+    Object.assign(project,fileData);
     result.push(project);   
 
       }
@@ -64,4 +65,24 @@ module.exports.saveProjects = (project) => {
     //Helper function to generate accesstoken
     module.exports.generateAccessToken = (username,email, id) =>  {
         return jwt.sign({username:username, email:email, id:id}, process.env.TOKEN_SECRET);
+      }
+
+      function segregateFilenames(arr) {
+        const txtFiles = [];
+        const jsFiles = [];
+      
+        for (let i = 0; i < arr.length; i++) {
+          const filename = arr[i];
+          const extension = filename.slice(filename.lastIndexOf("."));
+      
+          if (extension === ".txt") {
+            txtFiles.push(filename);
+          } else if (extension === ".js") {
+            jsFiles.push(filename);
+          }
+        }
+        return {
+          testCaseFiles: txtFiles,
+          uploadedFiles: jsFiles
+        }
       }
