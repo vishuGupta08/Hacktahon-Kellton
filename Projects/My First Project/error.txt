@@ -1,0 +1,9 @@
+
+
+Test Case 1: (200, '', {name:'John'}) => {status: false, error: true, code: 200, message: '', data: {name:'John'}}
+
+Test Case 2: (500, 'Internal Server Error', null) => {status: false, error: true, code: 500, message: 'Internal Server Error', data: null}
+
+Test Case 3: (400, 'Bad Request', {}) => {status: false, error: true, code: 400, message: 'Bad Request', data: {}}
+
+Test Case 4: (401, 'Unauthorized', []) => {status: false, error: true, code: 401, message: 'Unauthorized', data: []}

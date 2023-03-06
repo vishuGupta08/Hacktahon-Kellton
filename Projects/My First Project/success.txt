@@ -1,0 +1,17 @@
+
+
+Test Case 1: 
+Input: statusCode = 200, successMessage = "Success", result = { data: { total: 5 } }
+Expected Output: { status: true, error: false, code: 200, message: "Success", data: { data: { total: 5 } } }
+
+Test Case 2: 
+Input: statusCode = 404, successMessage = "Not Found", result = { data: { total: 0 } }
+Expected Output: { status: true, error: false, code: 404, message: "Not Found", data: { data: { total: 0 } } }
+
+Test Case 3: 
+Input: statusCode = 400, successMessage = "Bad Request", result = { data: { total: -1 } }
+Expected Output: { status: true, error: false, code: 400, message: "Bad Request", data: { data: { total: -1 } } }
+
+Test Case 4: 
+Input: statusCode = 500, successMessage = "Internal Server Error", result = { data: { total: null } }
+Expected Output: { status: true, error: false, code: 500, message: "Internal Server Error", data: { data: { total: null } } }

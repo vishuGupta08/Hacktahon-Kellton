@@ -21,6 +21,7 @@ app.use(cors());
 const multer = require('multer');
 const upload = multer();
 const path = require('path');
+const archiver = require('archiver')
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -29,6 +30,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.post('/generate-testcases', async(req,res)=> {
     try{
         let {projectId, fileNames} = req.body;
+        let caseSheetNames = []
      let project =   Helper.getProjects(projectId);
 if(Array.isArray(fileNames) &&  fileNames.length){
     let count =0;
@@ -62,6 +64,8 @@ if(Array.isArray(fileNames) &&  fileNames.length){
                 presence_penalty:0.0
             }) 
             let answer = response.data.choices[0].text
+            
+            caseSheetNames.push(`${functionName}.txt`)
 var write = fs.writeFile(__dirname + `/Projects/${project.name}/${functionName}.txt`, answer, (err) => {
 
     if (err) throw err 
@@ -76,7 +80,8 @@ var write = fs.writeFile(__dirname + `/Projects/${project.name}/${functionName}.
     }
     return res.status(200).json({
         success: true,
-        message:`Test Cases Generated for ${count} functions`
+        message:`Test Cases Generated for ${count} functions`,
+        fileNames:caseSheetNames
     })
 
 }else{
@@ -95,6 +100,7 @@ return res.status(400).json({
 })
 
 app.post('/signup', (req, res) => {
+  try{
     const { username, email, password } = req.body;
   
     // Check if required fields are provided
@@ -114,110 +120,57 @@ app.post('/signup', (req, res) => {
     Helper.saveUsers(users);
   
     return res.status(201).json({ message: 'User created' });
+  } catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})}
+  
   });
   
 // Endpoint for user login
 app.post('/login', (req, res) => {
-    // read user information from file
-    fs.readFile('users.json', 'utf8', (err, data) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Internal server error' });
-      }
-  
-      const users = JSON.parse(data);
-      const { username, password } = req.body;
-  
-      // check if user exists and password is correct
-      const user = users.find(u => u.username === username && u.password === password);
-      if (!user) {
-        return res.status(401).json({ error: 'Invalid username or password' });
-      }
-     let token = Helper.generateAccessToken(user.username, user.email, user.id)
-     
-      // return user information
-     return res.json({ username: user.username, name: user.name, token: token });
-    });
+  try{
+      // read user information from file
+      fs.readFile('users.json', 'utf8', (err, data) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Internal server error' });
+        }
+    
+        const users = JSON.parse(data);
+        const { username, password } = req.body;
+    
+        // check if user exists and password is correct
+        const user = users.find(u => u.username === username && u.password === password);
+        if (!user) {
+          return res.status(401).json({ error: 'Invalid username or password' });
+        }
+       let token = Helper.generateAccessToken(user.username, user.email, user.id)
+       
+        // return user information
+       return res.json({ username: user.username, name: user.name, token: token });
+      });
+  } catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})}
+
   });
 
   //create project
   
 app.get('/users', (req,res)=> {
-  const users =   Helper.getUsers()
+  try{
+    const users =   Helper.getUsers()
     return res.json({
         success: true,
         message:"Users fetched successfully",
         data: users
     })
+  } catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})}
+  
 })
 //to get all projects of a user
 app.get('/projects', (req,res)=> {
+  try{
     const token = req.query.token;
 
-       // If the token is present
-       if(!token) return res.json({success: false, message:"Token Missing"})
-    
-           // Verify the token using jwt.verify method
-           const decode = jwt.verify(token, process.env.TOKEN_SECRET);
-           
-          
-       if(!decode){
-        return res.json({success: false, message:"Token Verification Failed"})
-       }
-    //  console.log(decode)
-    const projects =   Helper.getProjects('',decode.id)
-    console.log(projects)
-    return res.json({
-        success: true,
-        message:"Projects fetched successfully",
-        data: projects
-    })
-
-})
-app.post('/projects', (req, res) => {
-       // Get token value to the json body
-       const token = req.body.token;
-
-       // If the token is present
-       if(!token) return res.json({success: false, message:"Token Missing"})
-    
-           // Verify the token using jwt.verify method
-           const decode = jwt.verify(token, process.env.TOKEN_SECRET);
-           
-          
-       if(!decode){
-        return res.json({success: false, message:"Token Verification Failed"})
-       }
-    const { name } = req.body;
-    if (!name) {
-      return res.status(400).send({ error: 'Name is required' });
-    }
-    let id =  uuidv4() 
-    const dir = `./Projects/${name}`;
- 
-    const projects = Helper.getProjects();
-    if (projects.find(project => project.name === name)) {
-      return res.status(409).json({ message: 'Project already exists' });
-    }
-    const newProject = { name: name, id:id, userid: decode.id};
-    projects.push(newProject);
-    Helper.saveProjects(projects);
-  if(!fs.existsSync(__dirname + '/Projects')){
-    fs.mkdirSync('./Projects');
-  }
-    
-    fs.mkdirSync(dir);
-    return res.json({ success: true, message: 'Project created successfully' });
-  });
-
-app.post('/upload', upload.any(), (req, res) => {
-    
-    
-    const token = req.body.token;
-const projectId = req.body.projectId
     // If the token is present
     if(!token) return res.json({success: false, message:"Token Missing"})
-    if(!projectId) return res.json({success: false, message:"Project ID Missing"})
  
         // Verify the token using jwt.verify method
         const decode = jwt.verify(token, process.env.TOKEN_SECRET);
@@ -226,86 +179,142 @@ const projectId = req.body.projectId
     if(!decode){
      return res.json({success: false, message:"Token Verification Failed"})
     }
-    let project = Helper.getProjects(projectId)
-    // Get the files from the request
-    const files = req.files;
-  
-    // Define an array to hold the file upload promises
-    const uploadPromises = [];
-  
-    // Loop through each file and create a unique filename based on the current timestamp
-    for (let fileKey of files) {
-      const file = fileKey;
-      const filename = file.originalname;
-  
-      // Set the path where the file will be saved
-      const uploadPath = path.join(__dirname, `/Projects/${project.name}`, filename);
-  console.log(uploadPath)
-      // Create a promise to save the file using the file system module
-      const uploadPromise = new Promise((resolve, reject) => {
+ //  console.log(decode)
+ const projects =   Helper.getProjects('',decode.id)
+ console.log(projects)
+ return res.json({
+     success: true,
+     message:"Projects fetched successfully",
+     data: projects
+ })
+  } catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})}
+})
+app.post('/projects', (req, res) => {
+  try{
+    // Get token value to the json body
+    const token = req.body.token;
 
-        fs.writeFile(uploadPath, file.buffer, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(filename);
-          }
-        });
-      });
-  
-      // Add the promise to the uploadPromises array
-      uploadPromises.push(uploadPromise);
+    // If the token is present
+    if(!token) return res.json({success: false, message:"Token Missing"})
+ 
+        // Verify the token using jwt.verify method
+        const decode = jwt.verify(token, process.env.TOKEN_SECRET);
+        
+       
+    if(!decode){
+     return res.json({success: false, message:"Token Verification Failed"})
     }
+ const { name } = req.body;
+ if (!name) {
+   return res.status(400).send({ error: 'Name is required' });
+ }
+ let id =  uuidv4() 
+ const dir = `./Projects/${name}`;
+
+ const projects = Helper.getProjects();
+ if (projects.find(project => project.name === name)) {
+   return res.status(409).json({ message: 'Project already exists' });
+ }
+ const newProject = { name: name, id:id, userid: decode.id};
+ projects.push(newProject);
+ Helper.saveProjects(projects);
+if(!fs.existsSync(__dirname + '/Projects')){
+ fs.mkdirSync('./Projects');
+}
+ 
+ fs.mkdirSync(dir);
+ return res.json({ success: true, message: 'Project created successfully' });
+  } catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})}
   
-    // Wait for all promises to resolve
-    Promise.all(uploadPromises)
-      .then((filenames) => {
-        res.json({
-          success: true,
-          message: 'Files uploaded successfully: ' + filenames.join(', ')});
-      })
-      .catch((err) => {
-        console.error(err);
-        res.status(500).json({
-          success : false,
-          message: 'Error uploading files'});
-      });
+  });
+
+app.post('/upload', upload.any(), (req, res) => {
+    
+  try{
+    const token = req.body.token;
+    const projectId = req.body.projectId
+        // If the token is present
+        if(!token) return res.json({success: false, message:"Token Missing"})
+        if(!projectId) return res.json({success: false, message:"Project ID Missing"})
+     
+            // Verify the token using jwt.verify method
+            const decode = jwt.verify(token, process.env.TOKEN_SECRET);
+            
+           
+        if(!decode){
+         return res.json({success: false, message:"Token Verification Failed"})
+        }
+        let project = Helper.getProjects(projectId)
+        // Get the files from the request
+        const files = req.files;
+      
+        // Define an array to hold the file upload promises
+        const uploadPromises = [];
+      
+        // Loop through each file and create a unique filename based on the current timestamp
+        for (let fileKey of files) {
+          const file = fileKey;
+          const filename = file.originalname;
+      
+          // Set the path where the file will be saved
+          const uploadPath = path.join(__dirname, `/Projects/${project.name}`, filename);
+      console.log(uploadPath)
+          // Create a promise to save the file using the file system module
+          const uploadPromise = new Promise((resolve, reject) => {
+    
+            fs.writeFile(uploadPath, file.buffer, (err) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(filename);
+              }
+            });
+          });
+      
+          // Add the promise to the uploadPromises array
+          uploadPromises.push(uploadPromise);
+        }
+      
+        // Wait for all promises to resolve
+        Promise.all(uploadPromises)
+          .then((filenames) => {
+            res.json({
+              success: true,
+              message: 'Files uploaded successfully: ' + filenames.join(', ')});
+          })
+          .catch((err) => {
+            console.error(err);
+            res.status(500).json({
+              success : false,
+              message: 'Error uploading files'});
+          });
+  } catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})} 
+  
   });
   
-  app.get('/files', (req, res) => {
-    const files = [
-      { name: 'success.txt', path: '/home/vishu.gupta/Desktop/Hackathon/Projects/My First Project/success.txt' },
-      { name: 'error.txt', path: '/home/vishu.gupta/Desktop/Hackathon/Projects/My First Project/error.txt' },
+  app.post('/files', (req, res) => {
+try{
+  const {filenames,projectId} = req.body;
+  const project = Helper.getProjects(projectId);
+  let arr = []
+  var archive = archiver('zip', {
+    zlib: { level: 9 } // Set the compression level
+  });
+  // Add the files to the archive
+  for(let file of filenames){
+    let path = __dirname + '/Projects' + `/${project.name}`+ `/${file}` 
+    archive.file(path, { name: file });
+  }
+  // Set the name of the archive
+  res.attachment(`Test Cases -${project.name}.zip`);
+
+  // Send the archive as a response
+  archive.pipe(res);
+  archive.finalize();
  
-    ];
   
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Transfer-Encoding', 'chunked');
+} catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})}
   
-    files.forEach(file => {
-      const filePath = file.path;
-      
-      const fileStream = fs.createReadStream(filePath);
-  
-      fileStream.on('open', () => {
-        res.write(`--${file.name}\r\n`);
-        res.write(`Content-Disposition: attachment; filename="${file.name}"\r\n`);
-        res.write(`Content-Type: text/plain\r\n`);
-        res.write('\r\n');
-      });
-  
-      fileStream.on('data', chunk => {
-        
-        res.write(chunk);
-      });
-  
-      fileStream.on('end', () => {
-        res.write('\r\n');
-      });
-    });
-  
-    res.write(`--\r\n`);
-    res.end();
   });
   
 const port = process.env.PORT || 5000;
