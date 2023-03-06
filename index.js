@@ -213,18 +213,19 @@ app.post('/projects', (req, res) => {
 
  const projects = Helper.getProjects();
  if (projects.find(project => project.name === name)) {
-   return res.status(409).json({ message: 'Project already exists' });
+   return res.status(409).json({ message: 'Project already exists', projectId:project.id });
  }
  const newProject = { name: name, id:id, userid: decode.id};
  projects.push(newProject);
+//  console.log(projects)
  Helper.saveProjects(projects);
 if(!fs.existsSync(__dirname + '/Projects')){
  fs.mkdirSync('./Projects');
 }
  
  fs.mkdirSync(dir);
- return res.json({ success: true, message: 'Project created successfully' });
-  } catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})}
+ return res.json({ success: true, message: 'Project created successfully', projectId:id  });
+  } catch(error){res.json({message: error.response ? error.response.data : error})}
   
   });
 
