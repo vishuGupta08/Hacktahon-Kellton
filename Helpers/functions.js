@@ -30,7 +30,7 @@ module.exports.saveProjects = (project) => {
         let projectName = project.name;
         // console.log(projectName)
      let folderPath =   path.join(__dirname, '..', `/Projects/${projectName}`)
-     
+     console.log(folderPath)
      let files = await fs.promises.readdir(folderPath);
      let fileData = segregateFilenames(files)
     Object.assign(project,fileData);

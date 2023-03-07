@@ -181,7 +181,7 @@ app.get('/projects', async(req,res)=> {
     }
  //  console.log(decode)
  let projects =   await Helper.getProjects('',decode.id)
-//  console.log(projects)
+ console.log(projects)
  return res.json({
      success: true,
      message:"Projects fetched successfully",
