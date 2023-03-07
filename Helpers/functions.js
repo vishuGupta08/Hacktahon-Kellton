@@ -11,14 +11,15 @@ module.exports.saveProjects = (project) => {
   //get project list
   module.exports.getProjects = async(id = '', userId ='') =>  {
   try{
-    const projects =  fs.readFileSync('projectList.json');
-    // console.log(JSON.parse(projects))
+  
+    const projects =   fs.readFileSync(path.join(__dirname, '..','projectList.json' ), 'utf8');
     if(id){
-      return JSON.parse(projects).find(project=> project.id === id )
+      let projectData = JSON.parse(projects);
+      return projectData.find(project=> project.id === id )
     }
     if(userId){
 // return JSON.parse(projects).find(project=> project.userid === userId )
-      // console.log(userId)
+      console.log('userId')
       let allProjects = [];
       
       allProjects = JSON.parse(projects).filter(project=> project.userid === userId )
@@ -41,11 +42,10 @@ module.exports.saveProjects = (project) => {
           return result;
     }
     // console.log(JSON.parse(projects))
+    console.log('third')
     return JSON.parse(projects);
   }catch(error){
-    return res.json({
-      message: error.response ? error.response.data : 'Server Issue'
-    })
+  console.log(error?.response?.data)
   }
     
   }

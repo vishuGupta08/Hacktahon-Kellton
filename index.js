@@ -31,7 +31,7 @@ app.post('/generate-testcases', async(req,res)=> {
     try{
         let {projectId, fileNames} = req.body;
         let caseSheetNames = []
-     let project =   Helper.getProjects(projectId);
+     let project = await  Helper.getProjects(projectId);
 if(Array.isArray(fileNames) &&  fileNames.length){
     let count =0;
     for(let path of fileNames){
@@ -231,7 +231,7 @@ if(!fs.existsSync(__dirname + '/Projects')){
   
   });
 
-app.post('/upload', upload.any(), (req, res) => {
+app.post('/upload', upload.any(), async(req, res) => {
     
   try{
     const token = req.body.token;
@@ -247,7 +247,8 @@ app.post('/upload', upload.any(), (req, res) => {
         if(!decode){
          return res.json({success: false, message:"Token Verification Failed"})
         }
-        let project = Helper.getProjects(projectId)
+        let project = await Helper.getProjects(projectId, '')
+        console.log(project)
         // Get the files from the request
         const files = req.files;
       
@@ -289,16 +290,16 @@ app.post('/upload', upload.any(), (req, res) => {
             console.error(err);
             res.status(500).json({
               success : false,
-              message: 'Error uploading files'});
+              message: 'Error uploading files'+ err?.response?.data});
           });
   } catch(error){res.json({message: error.response ? error.response.data : 'Server Issue'})} 
   
   });
   
-  app.post('/files', (req, res) => {
+  app.post('/files', async(req, res) => {
 try{
   const {filenames,projectId} = req.body;
-  const project = Helper.getProjects(projectId);
+  const project =await Helper.getProjects(projectId);
   let arr = []
   var archive = archiver('zip', {
     zlib: { level: 9 } // Set the compression level
