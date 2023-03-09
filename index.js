@@ -337,7 +337,7 @@ try{
   app.get('/dashboard', async(req,res)=> {
     try{
          // Get token value to the json body
-    const token = req.body.token;
+    const token = req.query.token;
     // If the token is present
     if(!token) return res.json({success: false, message:"Token Missing"})
         // Verify the token using jwt.verify method
