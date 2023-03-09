@@ -321,6 +321,47 @@ try{
   
   });
   
+
+  function getTotalFileCount(projects) {
+    let jsFiles = 0, txtFiles = 0;
+    projects.forEach(project => {
+      txtFiles += project.testCaseFiles.length
+      jsFiles +=  project.uploadedFiles.length;
+    });
+    return {
+      totalFiles: jsFiles,
+      testCases : txtFiles
+    };
+  }
+
+  app.get('/dashboard', async(req,res)=> {
+    try{
+         // Get token value to the json body
+    const token = req.body.token;
+    // If the token is present
+    if(!token) return res.json({success: false, message:"Token Missing"})
+        // Verify the token using jwt.verify method
+        const decode = jwt.verify(token, process.env.TOKEN_SECRET);
+    if(!decode){
+     return res.json({success: false, message:"Token Verification Failed"})
+    }
+    let projects = await Helper.getProjects('', decode.id);
+let totalProjects = projects.length;
+let countObj = getTotalFileCount(projects);
+
+      return res.json({
+        success: true,
+        data: {
+          totalProjects: totalProjects,
+          ...countObj
+        }
+      })
+    }catch(error){
+      res.json({
+        message: error.response ? error.response.data : 'Server Issue'
+      })
+    }
+  })
 const port = process.env.PORT || 5000;
 
 app.listen(port, () => console.log(`Server listening on port ${port}`));
